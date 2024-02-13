@@ -1,0 +1,25 @@
+server:
+  port: 9041
+  address: '[::]'
+spring:
+  application:
+    name: authentication-service
+  pulsar:
+    client:
+      service-url: pulsar://localhost:6650
+    producer:
+      batching-enabled: true
+      compression-type: lz4
+      name: authentication-service
+env:
+  backend:
+    urls:
+      UserService: http://localhost:9011/userService
+      RoleService: http://localhost:9012/roleService
+      UserRoleService: http://localhost:9013/userRoleService
+      PersonService: http://localhost:9021/personService
+      JWTService: http://localhost:9031/jwtService
+    email:
+      newUserTisserIdTemplate: 10
+    pulsar:
+      topic: email-topic
