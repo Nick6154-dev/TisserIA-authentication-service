@@ -2,7 +2,7 @@ package yps.systems.ai.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.pulsar.reactive.core.ReactivePulsarTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -37,12 +37,12 @@ public class AuthenticationService implements IAuthenticationService {
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
-    private ReactivePulsarTemplate<Mail> pulsarTemplate;
+    private KafkaTemplate<Object, Object> kafkaTemplate;
 
     @Value("${env.backend.email.newUserTisserIdTemplate}")
     private Integer idTemplate;
 
-    @Value("${env.backend.pulsar.topic}")
+    @Value("${env.backend.kafka.topic}")
     private String topic;
 
     @Override
@@ -86,15 +86,14 @@ public class AuthenticationService implements IAuthenticationService {
                                 User user = objects.getT1();
                                 Role role = objects.getT2();
                                 return userRoleService.createUserRoleRelation(user.idUser(), role.idRole())
-                                        .then(pulsarTemplate.send(topic, new Mail(
-                                                        personSaved.name() + " " + personSaved.lastname(),
-                                                        personSaved.email(),
-                                                        signUp.password(),
-                                                        personSaved.email(),
-                                                        idTemplate
-                                                ))
-                                        )
-                                        .thenReturn(true);
+                                        .then(Mono.just(true))
+                                        .doOnNext(aBoolean -> kafkaTemplate.send(topic, new Mail(
+                                                personSaved.name() + " " + personSaved.lastname(),
+                                                personSaved.email(),
+                                                signUp.password(),
+                                                personSaved.email(),
+                                                idTemplate
+                                        )));
                             })
                             .onErrorResume(error -> {
                                 System.out.println(error.getMessage());

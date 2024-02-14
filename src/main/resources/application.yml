@@ -4,13 +4,13 @@ server:
 spring:
   application:
     name: authentication-service
-  pulsar:
-    client:
-      service-url: pulsar://localhost:6650
+  kafka:
+    bootstrap-servers: localhost:9094
     producer:
-      batching-enabled: true
-      compression-type: lz4
-      name: authentication-service
+      key-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: mail-producer
 env:
   backend:
     urls:
@@ -21,5 +21,5 @@ env:
       JWTService: http://localhost:9031/jwtService
     email:
       newUserTisserIdTemplate: 10
-    pulsar:
+    kafka:
       topic: email-topic
